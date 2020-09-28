@@ -20,6 +20,17 @@ pthread_mutex_t servicemen[num_of_servicemen];
 sem_t makepay;
 
 
+void make_payment(char* cycle_id){
+
+    sem_wait(&makepay);
+    printf("%s started paying the service bill\n\n",cycle_id);
+    sleep(sleep_for);
+    printf("%s finished paying the service bill\n\n",cycle_id);
+    sem_post(&makepay);
+
+}
+
+
 /* method called by each of the cycle threads to take service from the servicemen, make payment
 and departure from the store */
 void* perform_cycle_repairing(void* arg){
@@ -66,8 +77,11 @@ void* perform_cycle_repairing(void* arg){
         }
     }
 
-    // sleep(1);
-    // printf("Just testing for thread %s\n", cycle_id);
+    //--------------------------------------------------------------------------------
+    //--------------------------------------------------------------------------------
+    /* now we handle the case of payment */
+    make_payment(cycle_id);
+
 }
 
 
