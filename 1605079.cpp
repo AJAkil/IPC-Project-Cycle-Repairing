@@ -8,10 +8,11 @@
 
 using namespace std;
 
-/* defining the number of threads, number of servicemen and capacity of the payment room */
-#define num_of_cycle_threads 10
+/* defining the number of threads, number of servicemen, sleep duration and capacity of the payment room */
+#define num_of_cycle_threads 5
 #define num_of_servicemen 3
 #define cap_of_payment_room 2
+#define sleep_for 2
 
 /* defining the array of mutexes equal to the number of servicemen and a semaphore
 to handle the case of the payment*/
@@ -22,11 +23,51 @@ sem_t makepay;
 /* method called by each of the cycle threads to take service from the servicemen, make payment
 and departure from the store */
 void* perform_cycle_repairing(void* arg){
-    char *thread_id;
-    thread_id = (char*) arg;
 
-    sleep(1);
-    printf("Just testing for thread %s\n", thread_id);
+    char *cycle_id;
+    cycle_id = (char*) arg;
+
+    /* looping over the mutexes to lock and unlock them */
+    for (int i = 0; i < num_of_servicemen; i++){
+        
+        if (i != 0){
+
+            /* locking the ith service man as cycle is being serviced by him */
+            pthread_mutex_lock(&servicemen[i]);
+            printf("%s started taking service from serviceman %d\n",cycle_id,i+1);
+
+            /* unlocking the i-1th service man so that the previous cycle can now 
+               take the required service */
+            pthread_mutex_unlock(&servicemen[i-1]);
+            
+            /* making the thread sleep for a random duration*/
+            sleep(sleep_for);
+
+            /* unlocking the ith thread so that the cycle can go to the next repairman */
+            //pthread_mutex_unlock(&servicemen[i]);
+            printf("%s finished taking service from serviceman %d\n",cycle_id,i+1);
+
+            if ( i+1 == num_of_servicemen){
+                pthread_mutex_unlock(&servicemen[i]);
+            }
+
+        }else{
+
+            /* locking the ith service man as cycle is being serviced by him */
+            pthread_mutex_lock(&servicemen[i]);
+            printf("%s started taking service from serviceman %d\n",cycle_id,i+1);
+            
+            /* making the thread sleep for a random duration*/
+            sleep(sleep_for);
+
+            /* unlocking the ith thread so that the cycle can go to the next repairman */
+            //pthread_mutex_unlock(&servicemen[i]);
+            printf("%s finished taking service from serviceman %d\n",cycle_id,i+1);
+        }
+    }
+
+    // sleep(1);
+    // printf("Just testing for thread %s\n", cycle_id);
 }
 
 
