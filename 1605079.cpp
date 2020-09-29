@@ -5,6 +5,7 @@
 #include<semaphore.h>
 #include<cstring>
 #include <time.h>
+#include <stdlib.h> 
 
 using namespace std;
 
@@ -23,9 +24,9 @@ sem_t makepay;
 void make_payment(char* cycle_id){
 
     sem_wait(&makepay);
-    printf("%s started paying the service bill\n\n",cycle_id);
-    sleep(sleep_for);
-    printf("%s finished paying the service bill\n\n",cycle_id);
+    printf("%s started paying the service bill\n",cycle_id);
+    sleep(rand() % 3 + 1);
+    printf("%s finished paying the service bill\n",cycle_id);
     sem_post(&makepay);
 
 }
@@ -52,7 +53,7 @@ void* perform_cycle_repairing(void* arg){
             pthread_mutex_unlock(&servicemen[i-1]);
             
             /* making the thread sleep for a random duration*/
-            sleep(sleep_for);
+            sleep(rand() % 3 + 1);
 
             /* unlocking the ith thread so that the cycle can go to the next repairman */
             //pthread_mutex_unlock(&servicemen[i]);
@@ -69,7 +70,7 @@ void* perform_cycle_repairing(void* arg){
             printf("%s started taking service from serviceman %d\n",cycle_id,i+1);
             
             /* making the thread sleep for a random duration*/
-            sleep(sleep_for);
+            sleep(rand() % 3 + 1);
 
             /* unlocking the ith thread so that the cycle can go to the next repairman */
             //pthread_mutex_unlock(&servicemen[i]);
@@ -82,11 +83,16 @@ void* perform_cycle_repairing(void* arg){
     /* now we handle the case of payment */
     make_payment(cycle_id);
 
+    /* we perform  departure right now */
+    
+
 }
 
 
 /* the main function where the main thread runs */
 int main(){
+
+    srand (time(NULL));
     
     /* a checker to check if the mutexes and semaphores have been created clearly */
     int result;
