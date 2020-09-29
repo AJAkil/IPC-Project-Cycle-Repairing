@@ -78,7 +78,7 @@ void* perform_cycle_repairing(void* arg){
     char *cycle_id;
     cycle_id = (char*) arg;
 
-    perform_servicing(cycle_id);
+    perform_servicing   (cycle_id);
     
     //--------------------------------------------------------------------------------
     //--------------------------------------------------------------------------------
