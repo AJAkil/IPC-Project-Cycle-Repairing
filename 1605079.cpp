@@ -31,24 +31,17 @@ void make_payment(char* cycle_id){
 
 }
 
-
-/* method called by each of the cycle threads to take service from the servicemen, make payment
-and departure from the store */
-void* perform_cycle_repairing(void* arg){
-
-    char *cycle_id;
-    cycle_id = (char*) arg;
-
+void perform_servicing(char* cycle_id){
     /* looping over the mutexes to lock and unlock them */
     for (int i = 0; i < num_of_servicemen; i++){
         
         if (i != 0){
 
-            /* locking the ith service man as cycle is being serviced by him */
+            /* locking the i-th serviceman as cycle is being serviced by him */
             pthread_mutex_lock(&servicemen[i]);
             printf("%s started taking service from serviceman %d\n",cycle_id,i+1);
 
-            /* unlocking the i-1th service man so that the previous cycle can now 
+            /* unlocking the (i-1)-th serviceman so that the previous i-th cycle can now 
                take the required service */
             pthread_mutex_unlock(&servicemen[i-1]);
             
@@ -56,7 +49,6 @@ void* perform_cycle_repairing(void* arg){
             sleep(rand() % 3 + 1);
 
             /* unlocking the ith thread so that the cycle can go to the next repairman */
-            //pthread_mutex_unlock(&servicemen[i]);
             printf("%s finished taking service from serviceman %d\n",cycle_id,i+1);
 
             if ( i+1 == num_of_servicemen){
@@ -65,7 +57,7 @@ void* perform_cycle_repairing(void* arg){
 
         }else{
 
-            /* locking the ith service man as cycle is being serviced by him */
+            /* locking the i-th serviceman as cycle is being serviced by him */
             pthread_mutex_lock(&servicemen[i]);
             printf("%s started taking service from serviceman %d\n",cycle_id,i+1);
             
@@ -73,18 +65,30 @@ void* perform_cycle_repairing(void* arg){
             sleep(rand() % 3 + 1);
 
             /* unlocking the ith thread so that the cycle can go to the next repairman */
-            //pthread_mutex_unlock(&servicemen[i]);
             printf("%s finished taking service from serviceman %d\n",cycle_id,i+1);
         }
     }
+}
 
+
+/* method called by each of the cycle threads to take service from the servicemen, make payment
+and departure from the store */
+void* perform_cycle_repairing(void* arg){
+
+    char *cycle_id;
+    cycle_id = (char*) arg;
+
+    perform_servicing(cycle_id);
+    
     //--------------------------------------------------------------------------------
     //--------------------------------------------------------------------------------
+
     /* now we handle the case of payment */
     make_payment(cycle_id);
 
     /* we perform  departure right now */
-    
+    //depart_from_shop(cycle_id);
+
 
 }
 
