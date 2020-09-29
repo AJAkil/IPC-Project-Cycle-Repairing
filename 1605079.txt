@@ -1,40 +1,34 @@
+unlock kore disi tomar baaler lock!
 1 started taking service from serviceman 1
 1 finished taking service from serviceman 1
 1 started taking service from serviceman 2
-4 started taking service from serviceman 1
+unlock kore disi tomar baaler lock!
+2 started taking service from serviceman 1
+2 finished taking service from serviceman 1
 1 finished taking service from serviceman 2
 1 started taking service from serviceman 3
-4 finished taking service from serviceman 1
-4 started taking service from serviceman 2
-5 started taking service from serviceman 1
-5 finished taking service from serviceman 1
-4 finished taking service from serviceman 2
-1 finished taking service from serviceman 3
-1 started paying the service bill
-4 started taking service from serviceman 3
-5 started taking service from serviceman 2
-3 started taking service from serviceman 1
-4 finished taking service from serviceman 3
-4 started paying the service bill
-3 finished taking service from serviceman 1
-1 finished paying the service bill
-5 finished taking service from serviceman 2
-5 started taking service from serviceman 3
-3 started taking service from serviceman 2
-2 started taking service from serviceman 1
-5 finished taking service from serviceman 3
-5 started paying the service bill
-4 finished paying the service bill
-3 finished taking service from serviceman 2
-3 started taking service from serviceman 3
-5 finished paying the service bill
-2 finished taking service from serviceman 1
 2 started taking service from serviceman 2
-3 finished taking service from serviceman 3
-3 started paying the service bill
+unlock kore disi tomar baaler lock!
+3 started taking service from serviceman 1
 2 finished taking service from serviceman 2
+1 finished taking service from serviceman 3
+3 finished taking service from serviceman 1
+1 started paying the service bill
 2 started taking service from serviceman 3
-3 finished paying the service bill
+3 started taking service from serviceman 2
+1 finished paying the service bill
+ekhne eshe boshe asi
+1 lock korsi shob kisu hehe
 2 finished taking service from serviceman 3
 2 started paying the service bill
+3 finished taking service from serviceman 2
+3 started taking service from serviceman 3
+3 finished taking service from serviceman 3
+3 started paying the service bill
 2 finished paying the service bill
+3 finished paying the service bill
+1 has departed
+3 has departed
+ekhne eshe boshe asi
+2 lock korsi shob kisu hehe
+2 has departed

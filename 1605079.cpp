@@ -10,15 +10,25 @@
 using namespace std;
 
 /* defining the number of threads, number of servicemen, sleep duration and capacity of the payment room */
-#define num_of_cycle_threads 5
+#define num_of_cycle_threads 3
 #define num_of_servicemen 3
 #define cap_of_payment_room 2
 #define sleep_for 2
+
+/* some global counters to keep track of num of serviceman and departurer */
+int cycle_counter = 0;
+int departure_counter = 0;
 
 /* defining the array of mutexes equal to the number of servicemen and a semaphore
 to handle the case of the payment*/
 pthread_mutex_t servicemen[num_of_servicemen];
 sem_t makepay;
+
+/* mutex to handle departure_counter */
+pthread_mutex_t departure_counter_mutex;
+
+/* mutex to handle the entry to the servicemen*/
+pthread_mutex_t start_service;
 
 
 void make_payment(char* cycle_id){
@@ -29,9 +39,14 @@ void make_payment(char* cycle_id){
     printf("%s finished paying the service bill\n",cycle_id);
     sem_post(&makepay);
 
+
 }
 
 void perform_servicing(char* cycle_id){
+
+    /* locking over the start service mutex, this will control the lock of first variables */
+    pthread_mutex_lock(&start_service);
+
     /* looping over the mutexes to lock and unlock them */
     for (int i = 0; i < num_of_servicemen; i++){
         
@@ -59,16 +74,78 @@ void perform_servicing(char* cycle_id){
 
             /* locking the i-th serviceman as cycle is being serviced by him */
             pthread_mutex_lock(&servicemen[i]);
+
+            /* unlocking the mutex here so that others can get a chance to enter the zone 
+                at the start of the code */
+            pthread_mutex_unlock(&start_service);
+            printf("unlock kore disi tomar baaler lock!\n");
+
             printf("%s started taking service from serviceman %d\n",cycle_id,i+1);
             
             /* making the thread sleep for a random duration*/
             sleep(rand() % 3 + 1);
 
-            /* unlocking the ith thread so that the cycle can go to the next repairman */
             printf("%s finished taking service from serviceman %d\n",cycle_id,i+1);
         }
     }
+
 }
+
+void depart_from_shop(char* cycle_id){
+
+    /* increasing the counter */
+    pthread_mutex_lock(&departure_counter_mutex);
+    
+    departure_counter++;
+
+    if (departure_counter == 1){
+
+        /* whenever we have a candidate for departure we try to block all incoming service requests
+           of the threads */
+        printf("ekhne eshe boshe asi\n");
+        pthread_mutex_lock(&start_service);
+        printf("%s lock korsi shob kisu hehe\n",cycle_id);
+
+        /* then we try to lock all the mutexes of the servicemen, that is we try to make
+           the serviceman store empty of any cycles */
+        for(int i = 0 ; i < num_of_servicemen ; i++){
+            pthread_mutex_lock(&servicemen[i]);
+        }
+
+        for(int i = num_of_servicemen - 1 ; i >= 0 ; i--){
+            pthread_mutex_unlock(&servicemen[i]);
+        }
+        
+        sleep(rand() % 3 + 1);
+
+        printf("%s has departed\n",cycle_id);
+        
+    }else if(departure_counter > 1){
+
+        for(int i = num_of_servicemen - 1 ; i >= 0 ; i--){
+            pthread_mutex_lock(&servicemen[i]);
+            pthread_mutex_unlock(&servicemen[i]);
+        }
+        
+        sleep(rand() % 3 + 1);
+
+        printf("%s has departed\n",cycle_id);
+
+    }
+
+    pthread_mutex_unlock(&departure_counter_mutex);
+
+    //locking for decreasing value
+    pthread_mutex_lock(&departure_counter_mutex);
+
+    departure_counter--;
+
+    if (departure_counter == 0 ) pthread_mutex_unlock(&start_service);
+
+    pthread_mutex_unlock(&departure_counter_mutex);
+
+}
+
 
 
 /* method called by each of the cycle threads to take service from the servicemen, make payment
@@ -78,7 +155,7 @@ void* perform_cycle_repairing(void* arg){
     char *cycle_id;
     cycle_id = (char*) arg;
 
-    perform_servicing   (cycle_id);
+    perform_servicing(cycle_id);
     
     //--------------------------------------------------------------------------------
     //--------------------------------------------------------------------------------
@@ -86,8 +163,10 @@ void* perform_cycle_repairing(void* arg){
     /* now we handle the case of payment */
     make_payment(cycle_id);
 
-    /* we perform  departure right now */
-    //depart_from_shop(cycle_id);
+
+
+    /* we perform  departure from the shop */
+    depart_from_shop(cycle_id);
 
 
 }
@@ -108,6 +187,19 @@ int main(){
             cout<<"Failed To Create Mutex "<<endl;
         }
     }
+
+    // start --> service mutex
+    result = pthread_mutex_init(&start_service, NULL);
+        if (result != 0){
+            cout<<"Failed To Create Mutex "<<endl;
+        }
+
+    // departure --> initialize departure counter mutex
+    result = pthread_mutex_init(&departure_counter_mutex, NULL);
+        if (result != 0){
+            cout<<"Failed To Create Mutex "<<endl;
+        }
+
 
     /* initializing the semaphore for payment and performing the required checks */
     result = sem_init(&makepay, 0, cap_of_payment_room);
@@ -141,6 +233,22 @@ int main(){
             cout<<"Failed To Destroy Mutex"<<endl;
         }
     }
+
+
+    // departure --> 
+    result = pthread_mutex_destroy(&departure_counter_mutex);
+
+    if (result != 0){
+        cout<<"Failed To Destroy Semaphore"<<endl;
+    }
+
+    // departure --> 
+    result = pthread_mutex_destroy(&start_service);
+
+    if (result != 0){
+        cout<<"Failed To Destroy Semaphore"<<endl;
+    }
+
 
     /* destroying the semaphores */
     result = sem_destroy(&makepay);
