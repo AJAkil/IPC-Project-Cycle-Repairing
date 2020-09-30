@@ -10,7 +10,7 @@
 using namespace std;
 
 /* defining the number of threads, number of servicemen, sleep duration and capacity of the payment room */
-#define num_of_cycle_threads 3
+#define num_of_cycle_threads 10
 #define num_of_servicemen 3
 #define cap_of_payment_room 2
 #define sleep_for 2
@@ -30,6 +30,9 @@ pthread_mutex_t departure_counter_mutex;
 /* mutex to handle the entry to the servicemen*/
 pthread_mutex_t start_service;
 
+/* mutex to handle the secondary entry to the servicemen*/
+pthread_mutex_t second_gate;
+
 
 void make_payment(char* cycle_id){
 
@@ -45,7 +48,14 @@ void make_payment(char* cycle_id){
 void perform_servicing(char* cycle_id){
 
     /* locking over the start service mutex, this will control the lock of first variables */
+    printf("%s  TO LOCK the FIRST gate in the SERVICING SECTION\n",cycle_id);
     pthread_mutex_lock(&start_service);
+    printf("%s  LOCKED the FIRST gate in the SERVICING SECTION\n",cycle_id);
+
+    /* locking the second gate here, that will be controlled by departure*/
+    printf("%s  TO LOCK the SECOND gate in the SERVICING SECTION\n",cycle_id);
+    pthread_mutex_lock(&second_gate);
+    printf("%s  LOCKED the SECOND gate in the SERVICING SECTION\n",cycle_id);
 
     /* looping over the mutexes to lock and unlock them */
     for (int i = 0; i < num_of_servicemen; i++){
@@ -75,10 +85,17 @@ void perform_servicing(char* cycle_id){
             /* locking the i-th serviceman as cycle is being serviced by him */
             pthread_mutex_lock(&servicemen[i]);
 
+            /* unlocking the second gate first here */
+            printf("%s about TO UNLOCK the SECOND gate in the SERVICING SECTION\n",cycle_id);
+            pthread_mutex_unlock(&second_gate);
+            printf("%s UNLOCKED the SECOND gate in the SERVICING SECTION\n",cycle_id);
+
+
             /* unlocking the mutex here so that others can get a chance to enter the zone 
                 at the start of the code */
+            printf("%s about TO UNLOCK the FIRST gate in the SERVICING SECTION\n",cycle_id);
             pthread_mutex_unlock(&start_service);
-            printf("unlock kore disi tomar baaler lock!\n");
+            printf("%s UNLOCKED the FIRST gate in the SERVICING SECTION\n",cycle_id);
 
             printf("%s started taking service from serviceman %d\n",cycle_id,i+1);
             
@@ -94,23 +111,29 @@ void perform_servicing(char* cycle_id){
 void depart_from_shop(char* cycle_id){
 
     /* increasing the counter */
+    printf("%s IS WAITING ON ENTRANCE OF THE DEPARTURE FUNCTION\n",cycle_id);
     pthread_mutex_lock(&departure_counter_mutex);
+    printf("%s IS ENTERED THE DEPARTURE FUNCTION\n",cycle_id);
     
     departure_counter++;
+    printf("VALUE OF DEPARTURE COUNTER FOR %s after INCREASING IS = %d\n\n",cycle_id,departure_counter);
 
     if (departure_counter == 1){
 
         /* whenever we have a candidate for departure we try to block all incoming service requests
            of the threads */
-        printf("ekhne eshe boshe asi\n");
-        pthread_mutex_lock(&start_service);
-        printf("%s lock korsi shob kisu hehe\n",cycle_id);
+        printf("%s about to lock the SECOND gate in the DEPARTURE SECTION\n",cycle_id);
+        pthread_mutex_lock(&second_gate);
+        printf("%s LOCKED the SECOND gate in the DEPARTURE SECTION\n",cycle_id);
 
         /* then we try to lock all the mutexes of the servicemen, that is we try to make
            the serviceman store empty of any cycles */
         for(int i = 0 ; i < num_of_servicemen ; i++){
             pthread_mutex_lock(&servicemen[i]);
         }
+
+        /* allowing others to enter the region */
+        pthread_mutex_unlock(&departure_counter_mutex);
 
         for(int i = num_of_servicemen - 1 ; i >= 0 ; i--){
             pthread_mutex_unlock(&servicemen[i]);
@@ -121,6 +144,8 @@ void depart_from_shop(char* cycle_id){
         printf("%s has departed\n",cycle_id);
         
     }else if(departure_counter > 1){
+
+        pthread_mutex_unlock(&departure_counter_mutex);
 
         for(int i = num_of_servicemen - 1 ; i >= 0 ; i--){
             pthread_mutex_lock(&servicemen[i]);
@@ -133,14 +158,15 @@ void depart_from_shop(char* cycle_id){
 
     }
 
-    pthread_mutex_unlock(&departure_counter_mutex);
+    
 
     //locking for decreasing value
     pthread_mutex_lock(&departure_counter_mutex);
 
     departure_counter--;
+    printf("VALUE OF DEPARTURE COUNTER FOR %s after DECREASING IS = %d\n\n",cycle_id,departure_counter);
 
-    if (departure_counter == 0 ) pthread_mutex_unlock(&start_service);
+    if (departure_counter == 0 ) pthread_mutex_unlock(&second_gate);
 
     pthread_mutex_unlock(&departure_counter_mutex);
 
@@ -200,6 +226,11 @@ int main(){
             cout<<"Failed To Create Mutex "<<endl;
         }
 
+    result = pthread_mutex_init(&second_gate, NULL);
+        if (result != 0){
+            cout<<"Failed To Create Mutex "<<endl;
+        }
+
 
     /* initializing the semaphore for payment and performing the required checks */
     result = sem_init(&makepay, 0, cap_of_payment_room);
@@ -239,14 +270,21 @@ int main(){
     result = pthread_mutex_destroy(&departure_counter_mutex);
 
     if (result != 0){
-        cout<<"Failed To Destroy Semaphore"<<endl;
+        cout<<"Failed To Destroy Mutex"<<endl;
     }
 
     // departure --> 
     result = pthread_mutex_destroy(&start_service);
 
     if (result != 0){
-        cout<<"Failed To Destroy Semaphore"<<endl;
+        cout<<"Failed To Destroy Mutex"<<endl;
+    }
+
+    // departure --> 
+    result = pthread_mutex_destroy(&second_gate);
+
+    if (result != 0){
+        cout<<"Failed To Destroy Mutex"<<endl;
     }
 
 
