@@ -85,6 +85,7 @@ void perform_servicing(char* cycle_id){
             /* locking the i-th serviceman as cycle is being serviced by him */
             pthread_mutex_lock(&servicemen[i]);
 
+
             /* unlocking the second gate first here */
             printf("%s about TO UNLOCK the SECOND gate in the SERVICING SECTION\n",cycle_id);
             pthread_mutex_unlock(&second_gate);
