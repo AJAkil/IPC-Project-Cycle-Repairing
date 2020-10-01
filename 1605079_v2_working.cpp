@@ -51,15 +51,21 @@ void make_payment(char* cycle_id){
     printf("%s started paying the service bill\n",cycle_id);
     sleep(rand() % rand_max + 1);
 
+
+
 }
 
 void perform_servicing(char* cycle_id){
 
     /* locking over the start service mutex, this will control the lock of first variables */
+    //printf("%s  TO LOCK the FIRST gate in the SERVICING SECTION\n",cycle_id);
     pthread_mutex_lock(&start_service);
+    //printf("%s  LOCKED the FIRST gate in the SERVICING SECTION\n",cycle_id);
 
     /* locking the second gate here, that will be controlled by departure*/
+    //printf("%s  TO LOCK the SECOND gate in the SERVICING SECTION\n",cycle_id);
     pthread_mutex_lock(&second_gate);
+    //printf("%s  LOCKED the SECOND gate in the SERVICING SECTION\n",cycle_id);
 
     /* looping over the mutexes to lock and unlock them */
     for (int i = 0; i < num_of_servicemen; i++){
@@ -74,7 +80,9 @@ void perform_servicing(char* cycle_id){
              /* unlocking the mutex here so that others can get a chance to enter the zone 
                 at the start of the code */
             if(i == 1){
+                //printf("%s about TO UNLOCK the FIRST gate in the SERVICING SECTION\n",cycle_id);
                 pthread_mutex_unlock(&start_service);
+                //printf("%s UNLOCKED the FIRST gate in the SERVICING SECTION\n",cycle_id);
             }
            
 
@@ -99,7 +107,12 @@ void perform_servicing(char* cycle_id){
 
 
             /* unlocking the second gate first here */
+            //printf("%s about TO UNLOCK the SECOND gate in the SERVICING SECTION\n",cycle_id);
             pthread_mutex_unlock(&second_gate);
+            //printf("%s UNLOCKED the SECOND gate in the SERVICING SECTION\n",cycle_id);
+
+
+           
 
             printf("%s started taking service from serviceman %d\n",cycle_id,i+1);
             
@@ -109,10 +122,13 @@ void perform_servicing(char* cycle_id){
             printf("%s finished taking service from serviceman %d\n",cycle_id,i+1);
 
             if ( i+1 == num_of_servicemen){
+                //printf("SPECIAL CASE");
 
                 pthread_mutex_unlock(&servicemen[i]);
 
+                 //printf("%s about TO UNLOCK the FIRST gate in the SERVICING SECTION\n",cycle_id);
                 pthread_mutex_unlock(&start_service);
+                //printf("%s UNLOCKED the FIRST gate in the SERVICING SECTION\n",cycle_id);
 
             }
         }
@@ -123,15 +139,20 @@ void perform_servicing(char* cycle_id){
 void depart_from_shop(char* cycle_id){
 
     /* increasing the counter */
+    //printf("%s IS WAITING ON ENTRANCE OF THE DEPARTURE FUNCTION\n",cycle_id);
     pthread_mutex_lock(&departure_counter_mutex);
+    //printf("%s IS ENTERED THE DEPARTURE FUNCTION\n",cycle_id);
     
     increment_departure();
+    //printf("VALUE OF DEPARTURE COUNTER FOR %s after INCREASING IS = %d\n\n",cycle_id,departure_counter);
 
     if (departure_counter == 1){
 
         /* whenever we have a candidate for departure we try to block all incoming service requests
            of the threads */
+        //printf("%s about to lock the SECOND gate in the DEPARTURE SECTION\n",cycle_id);
         pthread_mutex_lock(&second_gate);
+        //printf("%s LOCKED the SECOND gate in the DEPARTURE SECTION\n",cycle_id);
 
 
         /* then we try to lock all the mutexes of the servicemen, that is we try to make
@@ -143,9 +164,10 @@ void depart_from_shop(char* cycle_id){
         /* allowing others to enter the region */
         pthread_mutex_unlock(&departure_counter_mutex);
 
-        
-        printf("%s finished paying the service bill\n",cycle_id);
-        sem_post(&makepay);
+        //----------------------------EDITING FOR EDGE CASE 1---------------------------
+            printf("%s finished paying the service bill\n",cycle_id);
+            sem_post(&makepay);
+        //------------------------------------------------------------------------------
 
         for(int i = num_of_servicemen - 1 ; i >= 0 ; i--){
             pthread_mutex_unlock(&servicemen[i]);
@@ -157,8 +179,10 @@ void depart_from_shop(char* cycle_id){
         
     }else if(departure_counter > 1){
 
-        printf("%s finished paying the service bill\n",cycle_id);
-        sem_post(&makepay);
+        //----------------------------EDITING FOR EDGE CASE 1---------------------------
+            printf("%s finished paying the service bill\n",cycle_id);
+            sem_post(&makepay);
+        //------------------------------------------------------------------------------
 
         pthread_mutex_unlock(&departure_counter_mutex);
 
@@ -179,6 +203,7 @@ void depart_from_shop(char* cycle_id){
     pthread_mutex_lock(&departure_counter_mutex);
 
     decrement_departure();
+    //printf("VALUE OF DEPARTURE COUNTER FOR %s after DECREASING IS = %d\n\n",cycle_id,departure_counter);
 
     if (departure_counter == 0 ) pthread_mutex_unlock(&second_gate);
 
@@ -196,12 +221,18 @@ void* perform_cycle_repairing(void* arg){
     cycle_id = (char*) arg;
 
     perform_servicing(cycle_id);
+    
+    //--------------------------------------------------------------------------------
+    //--------------------------------------------------------------------------------
 
     /* now we handle the case of payment */
     make_payment(cycle_id);
 
+
+
     /* we perform  departure from the shop */
     depart_from_shop(cycle_id);
+
 
 }
 
@@ -307,5 +338,6 @@ int main(){
     }
 
     return 0;
+
 
 }
