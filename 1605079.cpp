@@ -36,14 +36,21 @@ pthread_mutex_t start_service;
 /* mutex to handle the secondary entry to the servicemen*/
 pthread_mutex_t second_gate;
 
+void increment_departure(){
+    departure_counter++;
+}
+
+void decrement_departure(){
+    departure_counter--;
+}
+
 
 void make_payment(char* cycle_id){
 
     sem_wait(&makepay);
     printf("%s started paying the service bill\n",cycle_id);
     sleep(rand() % 3 + 1);
-    printf("%s finished paying the service bill\n",cycle_id);
-    sem_post(&makepay);
+
 
 
 }
@@ -136,7 +143,7 @@ void depart_from_shop(char* cycle_id){
     pthread_mutex_lock(&departure_counter_mutex);
     //printf("%s IS ENTERED THE DEPARTURE FUNCTION\n",cycle_id);
     
-    departure_counter++;
+    increment_departure();
     //printf("VALUE OF DEPARTURE COUNTER FOR %s after INCREASING IS = %d\n\n",cycle_id,departure_counter);
 
     if (departure_counter == 1){
@@ -147,6 +154,7 @@ void depart_from_shop(char* cycle_id){
         pthread_mutex_lock(&second_gate);
         //printf("%s LOCKED the SECOND gate in the DEPARTURE SECTION\n",cycle_id);
 
+
         /* then we try to lock all the mutexes of the servicemen, that is we try to make
            the serviceman store empty of any cycles */
         for(int i = 0 ; i < num_of_servicemen ; i++){
@@ -155,6 +163,11 @@ void depart_from_shop(char* cycle_id){
 
         /* allowing others to enter the region */
         pthread_mutex_unlock(&departure_counter_mutex);
+
+        //----------------------------EDITING FOR EDGE CASE 1---------------------------
+            printf("%s finished paying the service bill\n",cycle_id);
+            sem_post(&makepay);
+        //------------------------------------------------------------------------------
 
         for(int i = num_of_servicemen - 1 ; i >= 0 ; i--){
             pthread_mutex_unlock(&servicemen[i]);
@@ -165,6 +178,11 @@ void depart_from_shop(char* cycle_id){
         printf("%s has departed\n",cycle_id);
         
     }else if(departure_counter > 1){
+
+        //----------------------------EDITING FOR EDGE CASE 1---------------------------
+            printf("%s finished paying the service bill\n",cycle_id);
+            sem_post(&makepay);
+        //------------------------------------------------------------------------------
 
         pthread_mutex_unlock(&departure_counter_mutex);
 
@@ -184,7 +202,7 @@ void depart_from_shop(char* cycle_id){
     //locking for decreasing value
     pthread_mutex_lock(&departure_counter_mutex);
 
-    departure_counter--;
+    decrement_departure();
     //printf("VALUE OF DEPARTURE COUNTER FOR %s after DECREASING IS = %d\n\n",cycle_id,departure_counter);
 
     if (departure_counter == 0 ) pthread_mutex_unlock(&second_gate);
