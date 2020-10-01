@@ -1,0 +1,16 @@
+Please read this file completely before using.
+
+Change your_roll, CYCLIST_COUNT, SERVICE_ROOM_COUNT, PAYMENT_ROOM_CAPACITY in lines 3-4 of stress.sh
+
+Script runs until it finds any error in output file, use ctrl+c to force stop the (possibly) infinite loop).
+
+Checker assumes output to be in exact same format of output.txt provided by teachers.
+Use at your own risk.
+
+Make stress.sh executable:
+chmod +x stress.sh
+
+Then run it using:
+./stress.sh
+
+To avoid checking potential deadlocks and race conditions, comment out lines 7-11 of stress.sh.
