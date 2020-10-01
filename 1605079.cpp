@@ -16,7 +16,7 @@ using namespace std;
 
 
 
-#define sleep_for 2
+int rand_max = 3;
 
 /* some global counters to keep track of num of serviceman and departurer */
 int cycle_counter = 0;
@@ -49,7 +49,7 @@ void make_payment(char* cycle_id){
 
     sem_wait(&makepay);
     printf("%s started paying the service bill\n",cycle_id);
-    sleep(rand() % 3 + 1);
+    sleep(rand() % rand_max + 1);
 
 
 
@@ -91,7 +91,7 @@ void perform_servicing(char* cycle_id){
             pthread_mutex_unlock(&servicemen[i-1]);
             
             /* making the thread sleep for a random duration*/
-            sleep(rand() % 3 + 1);
+            sleep(rand() % rand_max + 1);
 
             /* unlocking the ith thread so that the cycle can go to the next repairman */
             printf("%s finished taking service from serviceman %d\n",cycle_id,i+1);
@@ -117,7 +117,7 @@ void perform_servicing(char* cycle_id){
             printf("%s started taking service from serviceman %d\n",cycle_id,i+1);
             
             /* making the thread sleep for a random duration*/
-            sleep(rand() % 3 + 1);
+            sleep(rand() % rand_max + 1);
 
             printf("%s finished taking service from serviceman %d\n",cycle_id,i+1);
 
@@ -173,7 +173,7 @@ void depart_from_shop(char* cycle_id){
             pthread_mutex_unlock(&servicemen[i]);
         }
         
-        sleep(rand() % 3 + 1);
+        sleep(rand() % rand_max + 1);
 
         printf("%s has departed\n",cycle_id);
         
@@ -191,7 +191,7 @@ void depart_from_shop(char* cycle_id){
             pthread_mutex_unlock(&servicemen[i]);
         }
         
-        sleep(rand() % 3 + 1);
+        sleep(rand() % rand_max + 1);
 
         printf("%s has departed\n",cycle_id);
 
@@ -273,6 +273,9 @@ int main(){
 
     /* initializing the semaphore for payment and performing the required checks */
     result = sem_init(&makepay, 0, cap_of_payment_room);
+    if(result != 0){
+        printf("Failed To Create Semaphore\n");
+    }
 
     /* creating the required number of threads */
     pthread_t cycles[num_of_cycle_threads];
