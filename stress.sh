@@ -1,7 +1,7 @@
 #!/bin/bash
 
 your_roll=1605079
-g++ -D CYCLIST_COUNT=20 -D SERVICE_ROOM_COUNT=10 -D PAYMENT_ROOM_CAPACITY=5 -D SCRIPTED checker_Redwan.cpp -o checker_Redwan
+g++ -D CYCLIST_COUNT=30 -D SERVICE_ROOM_COUNT=15 -D PAYMENT_ROOM_CAPACITY=5 -D SCRIPTED checker_Redwan.cpp -o checker_Redwan
 g++ -D _REENTRANT $your_roll.cpp -o $your_roll -lpthread -O2 || exit
 
 echo checking potential deadlocks and race conditions

@@ -6,20 +6,21 @@
 #include<cstring>
 #include <time.h>
 #include <stdlib.h> 
+#include <chrono>
+#include <thread>
 
 using namespace std;
 
 /* defining the number of threads, number of servicemen, sleep duration and capacity of the payment room */
-#define num_of_cycle_threads 10
-#define num_of_servicemen 3
-#define cap_of_payment_room 2
+#define num_of_cycle_threads 30
+#define num_of_servicemen 15
+#define cap_of_payment_room 5
 
 
 
-int rand_max = 3;
+int rand_max = 10;
 
 /* some global counters to keep track of num of serviceman and departurer */
-int cycle_counter = 0;
 int departure_counter = 0;
 
 /* defining the array of mutexes equal to the number of servicemen and a semaphore
@@ -49,7 +50,8 @@ void make_payment(char* cycle_id){
 
     sem_wait(&makepay);
     printf("%s started paying the service bill\n",cycle_id);
-    sleep(rand() % rand_max + 1);
+    //sleep(rand() % rand_max + 1);
+    this_thread::sleep_for(chrono::milliseconds((rand() % rand_max + 1)));
 
 }
 
@@ -83,7 +85,8 @@ void perform_servicing(char* cycle_id){
             pthread_mutex_unlock(&servicemen[i-1]);
             
             /* making the thread sleep for a random duration*/
-            sleep(rand() % rand_max + 1);
+            //sleep(rand() % rand_max + 1);
+            this_thread::sleep_for(chrono::milliseconds((rand() % rand_max + 1)));
 
             /* unlocking the ith thread so that the cycle can go to the next repairman */
             printf("%s finished taking service from serviceman %d\n",cycle_id,i+1);
@@ -104,7 +107,8 @@ void perform_servicing(char* cycle_id){
             printf("%s started taking service from serviceman %d\n",cycle_id,i+1);
             
             /* making the thread sleep for a random duration*/
-            sleep(rand() % rand_max + 1);
+            //sleep(rand() % rand_max + 1);
+            this_thread::sleep_for(chrono::milliseconds((rand() % rand_max + 1)));
 
             printf("%s finished taking service from serviceman %d\n",cycle_id,i+1);
 
@@ -151,7 +155,8 @@ void depart_from_shop(char* cycle_id){
             pthread_mutex_unlock(&servicemen[i]);
         }
         
-        sleep(rand() % rand_max + 1);
+        //sleep(rand() % rand_max + 1);
+        this_thread::sleep_for(chrono::milliseconds((rand() % rand_max + 1)));
 
         printf("%s has departed\n",cycle_id);
         
@@ -167,13 +172,12 @@ void depart_from_shop(char* cycle_id){
             pthread_mutex_unlock(&servicemen[i]);
         }
         
-        sleep(rand() % rand_max + 1);
+        //sleep(rand() % rand_max + 1);
+        this_thread::sleep_for(chrono::milliseconds((rand() % rand_max + 1)));
 
         printf("%s has departed\n",cycle_id);
 
     }
-
-    
 
     //locking for decreasing value
     pthread_mutex_lock(&departure_counter_mutex);
