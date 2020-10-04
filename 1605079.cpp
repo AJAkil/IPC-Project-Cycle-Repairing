@@ -5,15 +5,16 @@
 #include<semaphore.h>
 #include<cstring>
 #include <time.h>
-#include <stdlib.h> 
+#include <stdlib.h>
 #include <chrono>
 #include <thread>
+
 
 using namespace std;
 
 /* defining the number of threads, number of servicemen, sleep duration and capacity of the payment room */
 #define num_of_cycle_threads 10
-#define num_of_servicemen 
+#define num_of_servicemen
 #define cap_of_payment_room 5
 
 
@@ -65,7 +66,7 @@ void perform_servicing(char* cycle_id){
 
     /* looping over the mutexes to lock and unlock them */
     for (int i = 0; i < num_of_servicemen; i++){
-        
+
         if (i != 0){
 
             /* locking the i-th serviceman as cycle is being serviced by him */
@@ -73,17 +74,17 @@ void perform_servicing(char* cycle_id){
             printf("%s started taking service from serviceman %d\n",cycle_id,i+1);
 
 
-             /* unlocking the mutex here so that others can get a chance to enter the zone 
+             /* unlocking the mutex here so that others can get a chance to enter the zone
                 at the start of the code */
             if(i == 1){
                 pthread_mutex_unlock(&start_service);
             }
-           
 
-            /* unlocking the (i-1)-th serviceman so that the previous i-th cycle can now 
+
+            /* unlocking the (i-1)-th serviceman so that the previous i-th cycle can now
                take the required service */
             pthread_mutex_unlock(&servicemen[i-1]);
-            
+
             /* making the thread sleep for a random duration*/
             //sleep(rand() % rand_max + 1);
             this_thread::sleep_for(chrono::milliseconds((rand() % rand_max + 1)));
@@ -105,7 +106,7 @@ void perform_servicing(char* cycle_id){
             pthread_mutex_unlock(&second_gate);
 
             printf("%s started taking service from serviceman %d\n",cycle_id,i+1);
-            
+
             /* making the thread sleep for a random duration*/
             //sleep(rand() % rand_max + 1);
             this_thread::sleep_for(chrono::milliseconds((rand() % rand_max + 1)));
@@ -128,7 +129,7 @@ void depart_from_shop(char* cycle_id){
 
     /* increasing the counter */
     pthread_mutex_lock(&departure_counter_mutex);
-    
+
     increment_departure();
 
     if (departure_counter == 1){
@@ -147,19 +148,19 @@ void depart_from_shop(char* cycle_id){
         /* allowing others to enter the region */
         pthread_mutex_unlock(&departure_counter_mutex);
 
-        
+
         printf("%s finished paying the service bill\n",cycle_id);
         sem_post(&makepay);
 
         for(int i = num_of_servicemen - 1 ; i >= 0 ; i--){
             pthread_mutex_unlock(&servicemen[i]);
         }
-        
+
         //sleep(rand() % rand_max + 1);
         this_thread::sleep_for(chrono::milliseconds((rand() % rand_max + 1)));
 
         printf("%s has departed\n",cycle_id);
-        
+
     }else if(departure_counter > 1){
 
         printf("%s finished paying the service bill\n",cycle_id);
@@ -171,7 +172,7 @@ void depart_from_shop(char* cycle_id){
             pthread_mutex_lock(&servicemen[i]);
             pthread_mutex_unlock(&servicemen[i]);
         }
-        
+
         //sleep(rand() % rand_max + 1);
         this_thread::sleep_for(chrono::milliseconds((rand() % rand_max + 1)));
 
@@ -214,7 +215,7 @@ void* perform_cycle_repairing(void* arg){
 int main(){
 
     srand (time(NULL));
-    
+
     /* a checker to check if the mutexes and semaphores have been created clearly */
     int result;
 
@@ -281,21 +282,21 @@ int main(){
     }
 
 
-    // departure --> 
+    // departure -->
     result = pthread_mutex_destroy(&departure_counter_mutex);
 
     if (result != 0){
         cout<<"Failed To Destroy Mutex"<<endl;
     }
 
-    // departure --> 
+    // departure -->
     result = pthread_mutex_destroy(&start_service);
 
     if (result != 0){
         cout<<"Failed To Destroy Mutex"<<endl;
     }
 
-    // departure --> 
+    // departure -->
     result = pthread_mutex_destroy(&second_gate);
 
     if (result != 0){
