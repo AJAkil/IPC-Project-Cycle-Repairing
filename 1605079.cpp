@@ -12,8 +12,8 @@
 using namespace std;
 
 /* defining the number of threads, number of servicemen, sleep duration and capacity of the payment room */
-#define num_of_cycle_threads 30
-#define num_of_servicemen 15
+#define num_of_cycle_threads 10
+#define num_of_servicemen 
 #define cap_of_payment_room 5
 
 
